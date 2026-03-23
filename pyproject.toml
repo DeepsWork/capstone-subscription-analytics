@@ -1,0 +1,12 @@
+[project]
+name = "capstone-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dbt-duckdb>=1.10.1",
+    "faker>=40.11.0",
+    "pandas>=3.0.1",
+    "pytest>=9.0.2",
+]
