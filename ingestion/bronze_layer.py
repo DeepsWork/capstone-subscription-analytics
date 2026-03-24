@@ -6,8 +6,8 @@
 
 from pyspark.sql.functions import current_timestamp, lit
 
-RAW_PATH    = "dbfs:/FileStore/capstone/raw"
-BRONZE_PATH = "dbfs:/FileStore/capstone/bronze"
+RAW_PATH    = "/Volumes/workspace/Capstone/raw_data/raw"
+BRONZE_PATH = "/Volumes/workspace/Capstone/bronze"
 
 # ── helpers ───────────────────────────────────────────────
 def add_metadata(df, source_file):
@@ -72,8 +72,8 @@ write_bronze(payments_df, "payments")
 # ═══════════════════════════════════════════════════════════
 # 5. content_events (JSON)
 # ═══════════════════════════════════════════════════════════
-events_df = spark.read.json(
-    f"{RAW_PATH}/content_events.json"
+events_df = spark.read.option("multiLine", True).json(
+    "/Volumes/workspace/Capstone/raw_data/raw/content_events.json"
 )
 events_df = add_metadata(events_df, "content_events.json")
 write_bronze(events_df, "content_events")
