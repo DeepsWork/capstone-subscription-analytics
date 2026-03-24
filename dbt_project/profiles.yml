@@ -1,0 +1,6 @@
+capstone:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../capstone.duckdb"
