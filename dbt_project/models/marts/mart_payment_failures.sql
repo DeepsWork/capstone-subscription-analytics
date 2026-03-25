@@ -5,14 +5,14 @@ WITH failures AS (
         payment_ts   AS failed_at,
         amount,
         failure_reason
-    FROM silver_payments
+    FROM {{ ref('stg_payments') }}
     WHERE payment_status = 'failed'
 ),
 recoveries AS (
     SELECT
         p.subscription_id,
         MIN(p.payment_ts) AS recovered_at
-    FROM silver_payments p
+    FROM {{ ref('stg_payments') }} p
     INNER JOIN failures f
         ON p.subscription_id = f.subscription_id
         AND p.payment_status = 'success'

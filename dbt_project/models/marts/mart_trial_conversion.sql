@@ -3,7 +3,7 @@ WITH trials AS (
         user_id,
         start_ts AS trial_start,
         end_ts   AS trial_end
-    FROM silver_subscriptions
+    FROM {{ ref('stg_subscriptions') }}
     WHERE plan_id = 'plan_free'
 ),
 paid AS (
@@ -11,7 +11,7 @@ paid AS (
         user_id,
         plan_id,
         start_ts AS paid_start
-    FROM silver_subscriptions
+    FROM {{ ref('stg_subscriptions') }}
     WHERE plan_id != 'plan_free'
 ),
 joined AS (

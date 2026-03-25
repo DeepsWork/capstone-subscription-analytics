@@ -7,5 +7,7 @@ test-paths: ["tests"]
 
 models:
   capstone:
+    staging:
+      +materialized: view
     marts:
       +materialized: table

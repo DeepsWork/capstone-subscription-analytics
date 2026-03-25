@@ -6,14 +6,14 @@ WITH user_activity AS (
         e.category,
         SUM(e.watch_seconds)            AS total_watch_seconds,
         COUNT(*)                        AS total_events
-    FROM silver_content_events e
+    FROM {{ ref('stg_content_events') }} e
     GROUP BY 1, 2, 3, 4
 ),
 user_plan AS (
     SELECT DISTINCT
         user_id,
         plan_id
-    FROM silver_subscriptions
+    FROM {{ ref('stg_subscriptions') }}
     WHERE plan_id != 'plan_free'
       AND status = 'active'
 )

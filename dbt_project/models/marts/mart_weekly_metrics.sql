@@ -1,17 +1,17 @@
 WITH weekly_activity AS (
     SELECT
-        DATE_TRUNC('week', event_ts)    AS week_start,
-        COUNT(DISTINCT user_id)         AS weekly_active_users,
-        SUM(watch_seconds)              AS total_watch_seconds,
+        DATE_TRUNC('week', event_ts)          AS week_start,
+        COUNT(DISTINCT user_id)               AS weekly_active_users,
+        SUM(watch_seconds)                    AS total_watch_seconds,
         ROUND(SUM(watch_seconds) / 3600.0, 2) AS total_watch_hours
-    FROM silver_content_events
+    FROM {{ ref('stg_content_events') }}
     GROUP BY 1
 ),
 weekly_renewals AS (
     SELECT
         DATE_TRUNC('week', start_ts) AS week_start,
         COUNT(*)                     AS renewals
-    FROM silver_subscriptions
+    FROM {{ ref('stg_subscriptions') }}
     WHERE auto_renew_flag = true
       AND status = 'active'
     GROUP BY 1
