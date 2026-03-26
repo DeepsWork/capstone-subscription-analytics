@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 .env
-data/
+data/*
 !data/generate_data.py
 logs/
 *.log
