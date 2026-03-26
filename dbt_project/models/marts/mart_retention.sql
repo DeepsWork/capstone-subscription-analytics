@@ -11,11 +11,16 @@ WITH user_activity AS (
 ),
 user_plan AS (
     SELECT DISTINCT
-        user_id,
-        plan_id
-    FROM {{ ref('stg_subscriptions') }}
-    WHERE plan_id != 'plan_free'
-      AND status = 'active'
+        s.user_id,
+        s.plan_id,
+        p.plan_name,
+        p.billing_cycle,
+        p.list_price
+    FROM {{ ref('stg_subscriptions') }} s
+    LEFT JOIN {{ ref('stg_plans') }} p
+        ON s.plan_id = p.plan_id
+    WHERE s.plan_id != 'plan_free'
+      AND s.status = 'active'
 )
 SELECT
     a.user_id,
@@ -23,6 +28,9 @@ SELECT
     a.device_type,
     a.category,
     p.plan_id,
+    p.plan_name,
+    p.billing_cycle,
+    p.list_price,
     a.total_watch_seconds,
     a.total_events,
     ROUND(a.total_watch_seconds / 3600.0, 2) AS watch_hours

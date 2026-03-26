@@ -15,10 +15,17 @@ failed_payments AS (
     WHERE p.payment_status = 'failed'
     GROUP BY 1
 ),
-downgrades AS (
+cancellations AS (
     SELECT DISTINCT user_id
     FROM {{ ref('stg_subscriptions') }}
     WHERE status = 'cancelled'
+),
+support_cases AS (
+    SELECT
+        user_id,
+        COUNT(*) AS support_case_count
+    FROM {{ ref('stg_support_cases') }}
+    GROUP BY 1
 ),
 churn_signals AS (
     SELECT
@@ -26,13 +33,20 @@ churn_signals AS (
         u.country,
         u.channel                AS acquisition_channel,
         la.last_event_ts,
-        DATEDIFF('day', la.last_event_ts, CURRENT_TIMESTAMP) AS days_inactive,
-        COALESCE(fp.failed_payment_count, 0)                 AS failed_payment_count,
-        CASE WHEN d.user_id IS NOT NULL THEN true ELSE false END AS has_cancellation
+        DATEDIFF('day', la.last_event_ts,
+            CURRENT_TIMESTAMP)   AS days_inactive,
+        COALESCE(fp.failed_payment_count, 0)
+                                 AS failed_payment_count,
+        COALESCE(sc.support_case_count, 0)
+                                 AS support_case_count,
+        CASE WHEN c.user_id IS NOT NULL
+             THEN true ELSE false
+        END                      AS has_cancellation
     FROM {{ ref('stg_users') }} u
-    LEFT JOIN last_activity la   ON u.user_id = la.user_id
-    LEFT JOIN failed_payments fp ON u.user_id = fp.user_id
-    LEFT JOIN downgrades d       ON u.user_id = d.user_id
+    LEFT JOIN last_activity la    ON u.user_id = la.user_id
+    LEFT JOIN failed_payments fp  ON u.user_id = fp.user_id
+    LEFT JOIN cancellations c     ON u.user_id = c.user_id
+    LEFT JOIN support_cases sc    ON u.user_id = sc.user_id
 )
 SELECT
     user_id,
@@ -41,19 +55,24 @@ SELECT
     last_event_ts,
     days_inactive,
     failed_payment_count,
+    support_case_count,
     has_cancellation,
-    (CASE WHEN days_inactive > 30       THEN 1 ELSE 0 END +
-     CASE WHEN failed_payment_count > 0 THEN 1 ELSE 0 END +
-     CASE WHEN has_cancellation         THEN 1 ELSE 0 END
+    -- churn risk score: 0 to 4
+    (CASE WHEN days_inactive > 30        THEN 1 ELSE 0 END +
+     CASE WHEN failed_payment_count > 0  THEN 1 ELSE 0 END +
+     CASE WHEN has_cancellation          THEN 1 ELSE 0 END +
+     CASE WHEN support_case_count > 1    THEN 1 ELSE 0 END
     ) AS churn_risk_score,
     CASE
-        WHEN (CASE WHEN days_inactive > 30       THEN 1 ELSE 0 END +
-              CASE WHEN failed_payment_count > 0 THEN 1 ELSE 0 END +
-              CASE WHEN has_cancellation         THEN 1 ELSE 0 END
-             ) = 3 THEN 'high'
-        WHEN (CASE WHEN days_inactive > 30       THEN 1 ELSE 0 END +
-              CASE WHEN failed_payment_count > 0 THEN 1 ELSE 0 END +
-              CASE WHEN has_cancellation         THEN 1 ELSE 0 END
+        WHEN (CASE WHEN days_inactive > 30        THEN 1 ELSE 0 END +
+              CASE WHEN failed_payment_count > 0  THEN 1 ELSE 0 END +
+              CASE WHEN has_cancellation          THEN 1 ELSE 0 END +
+              CASE WHEN support_case_count > 1    THEN 1 ELSE 0 END
+             ) >= 3 THEN 'high'
+        WHEN (CASE WHEN days_inactive > 30        THEN 1 ELSE 0 END +
+              CASE WHEN failed_payment_count > 0  THEN 1 ELSE 0 END +
+              CASE WHEN has_cancellation          THEN 1 ELSE 0 END +
+              CASE WHEN support_case_count > 1    THEN 1 ELSE 0 END
              ) = 2 THEN 'medium'
         ELSE 'low'
     END AS churn_risk_label

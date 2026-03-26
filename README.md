@@ -1,3 +1,4 @@
+![Pipeline Tests](https://github.com/DeepsWork/capstone-subscription-analytics/actions/workflows/pipeline_tests.yml/badge.svg)
 # Subscription Engagement and Churn Analytics Pipeline
 
 A local batch data pipeline that transforms raw subscription data into

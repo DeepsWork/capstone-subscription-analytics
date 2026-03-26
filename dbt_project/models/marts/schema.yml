@@ -24,7 +24,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['high', 'medium', 'low']
+              config:
+                values: ['high', 'medium', 'low']
       - name: churn_risk_score
         tests:
           - not_null
