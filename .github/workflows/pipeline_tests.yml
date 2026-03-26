@@ -14,16 +14,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: dbt_project   # 🔥 KEY FIX
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -31,23 +27,26 @@ jobs:
         run: pip install uv
 
       - name: Cache uv dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('dbt_project/uv.lock') }}
+          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
           restore-keys: |
             ${{ runner.os }}-uv-
 
       - name: Install dependencies
         run: uv sync --frozen
 
+      # ✅ RUN FROM ROOT (FIXED)
       - name: Run pipeline
         run: uv run python pipeline_runner.py
 
       - name: Run pytest
         run: uv run pytest tests/ -v
 
+      # ✅ ONLY dbt runs inside dbt_project
       - name: Run dbt tests
+        working-directory: dbt_project
         env:
           DBT_PROFILES_DIR: .
         run: |
