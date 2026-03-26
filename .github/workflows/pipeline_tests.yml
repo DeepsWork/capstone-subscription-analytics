@@ -15,17 +15,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Python setup
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # 3. Install uv
       - name: Install uv
         run: pip install uv
 
+      # 4. Cache dependencies
       - name: Cache uv dependencies
         uses: actions/cache@v4
         with:
@@ -34,17 +38,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-uv-
 
+      # 5. Install dependencies
       - name: Install dependencies
         run: uv sync --frozen
 
-      # ✅ RUN FROM ROOT (FIXED)
+      # 6. Debug file structure (VERY USEFUL)
+      - name: Debug file structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Listing files:"
+          ls -R
+
+      # 7. Run pipeline (ROOT)
       - name: Run pipeline
         run: uv run python pipeline_runner.py
 
+      # 8. Run pytest
       - name: Run pytest
         run: uv run pytest tests/ -v
 
-      # ✅ ONLY dbt runs inside dbt_project
+      # 9. Run dbt (INSIDE dbt_project)
       - name: Run dbt tests
         working-directory: dbt_project
         env:
