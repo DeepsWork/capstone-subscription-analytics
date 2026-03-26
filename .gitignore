@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 data/
+!data/generate_data.py
 logs/
 *.log
 dbt_project/target/
