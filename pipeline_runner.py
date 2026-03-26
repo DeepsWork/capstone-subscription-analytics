@@ -20,8 +20,22 @@ from pathlib import Path
 BASE = Path(__file__).parent
 
 # ── import stages ─────────────────────────────────────────
+import importlib.util
+import sys
+from pathlib import Path
+
+BASE = Path(__file__).parent
 sys.path.insert(0, str(BASE))
-from data.generate_data          import main as generate
+
+# dynamically load generate_data from data folder
+spec = importlib.util.spec_from_file_location(
+    "generate_data",
+    BASE / "data" / "generate_data.py"
+)
+gen_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(gen_module)
+generate = gen_module.main
+
 from ingestion.bronze_local      import run_bronze
 from transformation.silver_local import run_silver
 
