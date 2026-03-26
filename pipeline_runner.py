@@ -30,8 +30,12 @@ sys.path.insert(0, str(BASE))
 # dynamically load generate_data from data folder
 spec = importlib.util.spec_from_file_location(
     "generate_data",
-    BASE / "data" / "generate_data.py"
+    BASE / "ingestion" / "generate_data.py"
 )
+# spec = importlib.util.spec_from_file_location(
+#     "generate_data",
+#     BASE / "data" / "generate_data.py"
+# )
 gen_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gen_module)
 generate = gen_module.main
