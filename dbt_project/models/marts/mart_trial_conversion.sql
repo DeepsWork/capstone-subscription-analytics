@@ -63,7 +63,7 @@ joined AS (
         t.trial_end,
         p.plan_id        AS converted_plan,
         p.paid_start,
-        DATEDIFF('day', t.trial_end, p.paid_start) AS days_to_convert
+        DATEDIFF(p.paid_start, t.trial_end) AS days_to_convert
     FROM trials t
     LEFT JOIN paid p
         ON t.user_id = p.user_id
